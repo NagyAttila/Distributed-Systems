@@ -1,0 +1,39 @@
+def reliable_recvmess(srcip, srcport, function):
+  print "Reliably receiving from", srcport
+  def onreceive(remoteip, remoteport, message, commhandle):
+    seqnumber = message[0]
+    stopcomm(commhandle)
+    print "Sending ACK", seqnumber
+    sendmess(remoteip, remoteport, seqnumber, srcip, srcport)
+    function(remoteip, remoteport, message, commhandle)
+  return recvmess(srcip, srcport, onreceive)
+
+mycontext["seq_number"] = 0
+def reliable_sendmess(destip, destport, message, srcip=None, srcport=None):
+  print "Reliably sending from", srcport, "to", destport
+  return reliable_try_sendmess(destip, destport, message, 5, srcip, srcport)
+
+def reliable_try_sendmess(destip, destport, message, tries_left, srcip=None, srcport=None):
+  if tries_left == 0:
+    print "Exception"
+  else:
+    wrapped_message = str(mycontext["seq_number"]) + ',' + message
+    
+    def retry():
+      reliable_try_sendmess(destip, destport, message, tries_left - 1, srcip, srcport)
+    
+    timer = settimer(5, retry, [])
+    print "Sending message,", tries_left, "tries left"
+    sendmess(destip, destport, wrapped_message, srcip, srcport)
+    
+    def ack_received(remoteip, remoteport, ack_message, commhandle):
+      ack_number = int(ack_message)
+      print "Received ACK:", ack_number
+      if ack_number == mycontext["seq_number"]:
+        canceltimer(timer)
+    
+    print "Waiting to receive ACK for", mycontext["seq_number"], "..."
+    recvmess(srcip, srcport, ack_received)
+
+def reliable_config(maxdgramsize, retries, timeoutinms):
+  pass
