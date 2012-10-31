@@ -1,0 +1,52 @@
+include reliable.repy 
+
+def usage():
+  print "repy outfile portnum [timeout]"
+  print "timeout is in seconds, default: 10sec"
+### what is repy??? ###
+
+def checkArgs():
+  n = len(callargs)
+  if not n == 3 and \
+     not n == 4:
+    usage()
+    exitall()
+
+def parseArgs():
+  mycontext['timeout'] = 10000
+  n = len(callargs)
+  if n >= 3:
+    mycontext['repy'] = callargs[0]
+    mycontext['outfile'] = callargs[1]
+    mycontext['portnum'] = int(callargs[2])
+  if n == 4:
+    mycontext[' timeout'] = callargs[3]*1000
+
+def setTimeout()
+  mycontext['timeoutTimer'] = settimer(mycontext['timeout'], timeoutExpired, [])
+
+def cancelTimeout()
+  canceltimer(mycontext['timeoutTimer'])
+
+def resetTimeout():
+  cancelTimeout()
+  setTimeout()
+
+def timerExpired():
+  print mycontext['timeout'],"second elapsed since last received message."
+  print "Hej då!"
+  exitall()
+
+def receiveMsg():
+  resetTimeout()
+  #recv msg
+  #parse msg
+  #write to file
+  pass
+
+if callfunc == 'initialize':
+  checkArgs()
+  parseArgs()
+  
+  setTimeout()
+  listencommhandle = waitforconn(ip,port,receiveMsg)

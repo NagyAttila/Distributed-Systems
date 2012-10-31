@@ -1,2 +1,58 @@
+include reliable.repy 
+
+def usage():
+  print "inputfile serverhost serverportnum [srchost srcportnum] [maxdgramsize nretries timeoutms]"
+
+def checkArgs():
+  n = len(callargs)
+  if not n == 3 and \
+    not n == 5 and\
+    not n == 6 and \
+    not n == 8:
+    usage()
+    exitall()
+
+def parseArgs():
+  mycontext['srchost'] = getmyip()
+  mycontext['srcportnum'] = 12345
+  mycontext['maxdgramsize'] = 512
+  mycontext['nretries'] = 4
+  mycontext['timeoutms'] = 10
+
+  n = len(callargs)
+  if n >= 3:
+    mycontext['inputfile'] = callargs[0]
+    mycontext['serverhost'] = callargs[1]
+    mycontext['serverportnum'] = int(callargs[2])
+  if n == 5 or n == 8:
+    mycontext[' srchost'] = callargs[3]
+    mycontext[' srcportnum'] = callargs[4]
+  if n == 6:
+    mycontext[' maxdgramsize'] = callargs[3]
+    mycontext[' nretries']= callargs[4]
+    mycontext[' timeoutms'] = callargs[5]
+  if n == 8:
+    mycontext[' maxdgramsize'] = callargs[5]
+    mycontext[' nretries']= callargs[6]
+    mycontext[' timeoutms'] = callargs[7]
+
 if callfunc == 'initialize':
-      print "Hello World"
+  checkArgs()
+  parseArgs()
+
+  reliable_config( mycontext['maxdgramsize'],\
+                   mycontext['nretries'],\
+                   mycontext['timeoutms'])
+
+  print "For debug only"
+  for key, value in mycontext.items():
+    print key,value
+
+  for line in file(inputfile,"r"):
+    reliable_sendmess( mycontext['serverhost'],\
+                       mycontext['serverportnum'], \
+                       mycontext['line'], \
+                       mycontext['srchost'], \
+                       mycontext['srcportnum'])
+
+
