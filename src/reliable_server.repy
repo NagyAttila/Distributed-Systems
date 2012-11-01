@@ -35,18 +35,29 @@ def resetTimeout():
 def timerExpired():
   print mycontext['timeout'],"second elapsed since last received message."
   print "Hej då!"
+  stopLogging()
   exitall()
 
-def receiveMsg():
-  resetTimeout()
-  #recv msg
-  #parse msg
-  #write to file
-  pass
+def receiveMsg(remoteip, remoteport, message, commhandle):
+  payload = get_payload(message)
+  log(payload)
+  reliable_sendmess(remoteip, remoteport, message):
+
+def log(data):
+  mycontext['filetosent'].write()
+
+def stopLogging():
+  mycontext['filetosent'].close()
+
+def startLogging():
+  mycontext['filetosent'] = open(mycontext['outfile'], 'w')
 
 if callfunc == 'initialize':
   checkArgs()
   parseArgs()
   
+  startLogging()
   setTimeout()
-  listencommhandle = waitforconn(ip,port,receiveMsg)
+  while True
+    reliable_recvmess(getmyip(), mycontext['portnum'], receiveMsg)
+    resetTimeout()

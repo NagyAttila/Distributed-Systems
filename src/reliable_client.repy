@@ -25,16 +25,16 @@ def parseArgs():
     mycontext['serverhost'] = callargs[1]
     mycontext['serverportnum'] = int(callargs[2])
   if n == 5 or n == 8:
-    mycontext[' srchost'] = callargs[3]
-    mycontext[' srcportnum'] = callargs[4]
+    mycontext['srchost'] = callargs[3]
+    mycontext['srcportnum'] = callargs[4]
   if n == 6:
-    mycontext[' maxdgramsize'] = callargs[3]
-    mycontext[' nretries']= callargs[4]
-    mycontext[' timeoutms'] = callargs[5]
+    mycontext['maxdgramsize'] = callargs[3]
+    mycontext['nretries']= callargs[4]
+    mycontext['timeoutms'] = callargs[5]
   if n == 8:
-    mycontext[' maxdgramsize'] = callargs[5]
-    mycontext[' nretries']= callargs[6]
-    mycontext[' timeoutms'] = callargs[7]
+    mycontext['maxdgramsize'] = callargs[5]
+    mycontext['nretries']= callargs[6]
+    mycontext['timeoutms'] = callargs[7]
 
 if callfunc == 'initialize':
   checkArgs()
@@ -48,11 +48,18 @@ if callfunc == 'initialize':
   for key, value in mycontext.items():
     print key,value
 
-  for line in file(inputfile,"r"):
-    reliable_sendmess( mycontext['serverhost'],\
-                       mycontext['serverportnum'], \
-                       mycontext['line'], \
-                       mycontext['srchost'], \
-                       mycontext['srcportnum'])
+  f = None 
+  try:
+    #with open('filename') as f: pass
+    f = open(mycontext['inputfile'], 'r')
+  except IOError as e:
+     print mycontext['inputfile'],'is not exist!'
+
+  #reliable_sendmess( mycontext['serverhost'],\
+                     #mycontext['serverportnum'], \
+                     #f.read(), \
+                     #mycontext['srchost'], \
+                     #mycontext['srcportnum'])
+  f.close()
 
 
