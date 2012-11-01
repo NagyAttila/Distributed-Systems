@@ -8,6 +8,7 @@ def reliable_recvmess(srcip, srcport, function):
     function(remoteip, remoteport, message, commhandle)
   return recvmess(srcip, srcport, onreceive)
 
+mycontext["delim"] = ","
 mycontext["seq_number"] = 0
 def reliable_sendmess(destip, destport, message, srcip=None, srcport=None):
   print "Reliably sending from", srcport, "to", destport
@@ -37,3 +38,7 @@ def reliable_try_sendmess(destip, destport, message, tries_left, srcip=None, src
 
 def reliable_config(maxdgramsize, retries, timeoutinms):
   pass
+
+def get_payload(message):
+  header_length = 1 + len(mycontext["delim"])
+  return message[header_length:]
