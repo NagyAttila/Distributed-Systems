@@ -8,11 +8,11 @@ def reliable_recvmess(srcip, srcport, function):
     function(remoteip, remoteport, message, commhandle)
   return recvmess(srcip, srcport, onreceive)
 
-mycontext["delim"] = ","
-mycontext["seq_number"] = 0
 def reliable_sendmess(destip, destport, message, srcip=None, srcport=None):
   print "Reliably sending from", srcport, "to", destport
-  return reliable_try_sendmess(destip, destport, message, 5, srcip, srcport)
+  # The setting defines number of RE-tries, so we add one.
+  tries = mycontext["retries"] + 1
+  return reliable_try_sendmess(destip, destport, message, tries, srcip, srcport)
 
 def reliable_try_sendmess(destip, destport, message, tries_left, srcip=None, srcport=None):
   if tries_left == 0:
@@ -23,7 +23,10 @@ def reliable_try_sendmess(destip, destport, message, tries_left, srcip=None, src
     def retry():
       reliable_try_sendmess(destip, destport, message, tries_left - 1, srcip, srcport)
     
-    timer = settimer(5, retry, [])
+    # float() is important or we will get integer division.
+    timeout_seconds = float(mycontext["timeoutinms"]) / 1000
+    timer = settimer(timeout_seconds, retry, [])
+    
     print "Sending message,", tries_left, "tries left"
     sendmess(destip, destport, wrapped_message, srcip, srcport)
     
@@ -36,8 +39,17 @@ def reliable_try_sendmess(destip, destport, message, tries_left, srcip=None, src
     print "Waiting to receive ACK for", mycontext["seq_number"], "..."
     recvmess(srcip, srcport, ack_received)
 
+mycontext["delim"] = ","
+# Global variable containing current sequence number.
+# Will not be reliable if we call reliable_sendmess several times concurrently.
+mycontext["seq_number"] = 0
+mycontext["maxdgramsize"] = 512
+mycontext["retries"] = 4
+mycontext["timeoutinms"] = 10
 def reliable_config(maxdgramsize, retries, timeoutinms):
-  pass
+  mycontext["maxdgramsize"] = maxdgramsize
+  mycontext["retries"] = retries
+  mycontext["timeoutinms"] = timeoutinms
 
 def get_payload(message):
   header_length = 1 + len(mycontext["delim"])
