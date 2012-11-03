@@ -13,51 +13,65 @@ def checkArgs():
     exitall()
 
 def parseArgs():
-  mycontext['timeout'] = 10000
+  mycontext['timeout'] = 10
   n = len(callargs)
   if n >= 3:
     mycontext['repy'] = callargs[0]
     mycontext['outfile'] = callargs[1]
     mycontext['portnum'] = int(callargs[2])
   if n == 4:
-    mycontext[' timeout'] = callargs[3]*1000
+    mycontext['timeout'] = int(callargs[3])
 
-def setTimeout()
+def setTimeout():
   mycontext['timeoutTimer'] = settimer(mycontext['timeout'], timeoutExpired, [])
 
-def cancelTimeout()
+def cancelTimeout():
   canceltimer(mycontext['timeoutTimer'])
 
 def resetTimeout():
   cancelTimeout()
   setTimeout()
 
-def timerExpired():
-  print mycontext['timeout'],"second elapsed since last received message."
+def timeoutExpired():
+  print mycontext['timeout'],"second(s) has pasted since last received message."
   print "Hej då!"
   stopLogging()
   exitall()
 
 def receiveMsg(remoteip, remoteport, message, commhandle):
   payload = get_payload(message)
+  print 'Following message arrrived:',payload
   log(payload)
-  reliable_sendmess(remoteip, remoteport, message):
 
 def log(data):
-  mycontext['filetosent'].write()
+  try:
+    mycontext['filetosent'].write(data)
+  except IOError as e:
+    print mycontext['outfile'],'cannot be written!'
+    stopLogging()
+    exitall()
 
 def stopLogging():
   mycontext['filetosent'].close()
 
 def startLogging():
-  mycontext['filetosent'] = open(mycontext['outfile'], 'w')
+  try:
+    mycontext['filetosent'] = open(mycontext['outfile'], 'w')
+  except IOError as e:
+    print mycontext['outfile'],'cannot be written!'
+    exitall()
 
 if callfunc == 'initialize':
   checkArgs()
   parseArgs()
-  
+
+  print "For debug only"
+  for key, value in mycontext.items():
+    print key,value
+  print "\n"
+
   startLogging()
   setTimeout()
-  while True
-    reliable_recvmess(getmyip(), mycontext['portnum'], receiveMsg)
-    resetTimeout()
+  #while True:
+  reliable_recvmess(getmyip(), mycontext['portnum'], receiveMsg)
+  resetTimeout()
