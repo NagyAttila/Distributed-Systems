@@ -1,51 +1,87 @@
 def reliable_recvmess(srcip, srcport, function):
-  print "Reliably receiving from", srcport
+  print "Server starts receiving from", srcport
+  expected_seqnumber = 0
   def onreceive(remoteip, remoteport, message, commhandle):
-    seqnumber = message[0]
-    stopcomm(commhandle)
-    print "Sending ACK", seqnumber
-    sendmess(remoteip, remoteport, seqnumber, srcip, srcport)
-    function(remoteip, remoteport, message, commhandle)
+    print "Server receives:", message
+    actual_seqnumber = int(message[0])
+    if actual_seqnumber == expected_seqnumber:
+      print "Server sends ACK", actual_seqnumber, "to", remoteport
+      stopcomm(commhandle)
+      sendmess(remoteip, remoteport, str(actual_seqnumber), srcip, srcport)
+      function(remoteip, remoteport, message, commhandle)
   return recvmess(srcip, srcport, onreceive)
 
-def reliable_sendmess(destip, destport, message, srcip=None, srcport=None):
-  print "Reliably sending from", srcport, "to", destport
-  # The setting defines number of RE-tries, so we add one.
-  tries = mycontext["retries"] + 1
-  return reliable_try_sendmess(destip, destport, message, tries, srcip, srcport)
+def chunks(message, chunk_length):
+  indexes = range(0, len(message), chunk_length)
+  return [ message[i:i+chunk_length] for i in indexes ]
 
-def reliable_try_sendmess(destip, destport, message, tries_left, srcip=None, srcport=None):
-  if tries_left == 0:
-    print "Exception"
+def reliable_sendmess(destip, destport, message, srcip=None, srcport=None):
+  dgramsize = mycontext["maxdgramsize"]
+  payloads = chunks(message, dgramsize)
+  
+  print "Client starts sending from", srcport, "to", destport
+  
+  seqnumber = 0
+  retries = mycontext["retries"]
+  for payload in payloads:
+    reliable_try_send_packet(destip, destport, payload, seqnumber, retries, srcip, srcport)
+    seqnumber = 1 - seqnumber
+
+def reliable_try_send_packet(destip, destport, payload, seqnumber, retries, srcip=None, srcport=None):
+  wrapped_message = str(seqnumber) + ',' + payload
+  mycontext['retries_left'] = retries
+  mycontext['timer'] = None
+  mycontext['sent'] = False
+  mycontext['bytes'] = 0
+  # float() is important or we will get integer division.
+  timeout_seconds = float(mycontext["timeoutinms"]) / 1000
+  
+  def send():
+    print "Client sends packet,", mycontext['retries_left'], "retries left"
+    mycontext['timer'] = settimer(timeout_seconds, ack_timeout, [])
+    mycontext['bytes'] = sendmess(destip, destport, wrapped_message, srcip, srcport)
+  
+  def ack_timeout():
+    print "Client did not receive ACK"
+    if mycontext['retries_left'] > 0:
+      mycontext['retries_left'] = mycontext['retries_left'] - 1
+      send()
+    else:
+      mycontext['sent'] = False # Not necessary, but makes it clear what happens here.
+      lock.release()
+  
+  def ack_received(remoteip, remoteport, ack_message, commhandle):
+    # We have received a packet from the client, but the ACK number is not 
+    # relevant, because we're only waiting for a single ACK at any given time.
+    print "Client receives ACK"
+    mycontext['sent'] = True # Ensure that we return correctly at the end of this function.
+    
+    canceltimer(mycontext['timer']) # Stop retrying.
+    lock.release()
+  
+  lock = getlock()
+  lock.acquire()
+  
+  send()
+  
+  print "Client waits to receive ACK to", srcport
+  commhandle = recvmess(srcip, srcport, ack_received)
+  
+  lock.acquire()
+  
+  # Wait for the lock to be released after a set number of timeouts of after an ACK is received.
+  
+  stopcomm(commhandle)
+	
+  if mycontext['sent']:
+    return bytes
   else:
-    wrapped_message = str(mycontext["seq_number"]) + ',' + message
-    
-    def retry():
-      reliable_try_sendmess(destip, destport, message, tries_left - 1, srcip, srcport)
-    
-    # float() is important or we will get integer division.
-    timeout_seconds = float(mycontext["timeoutinms"]) / 1000
-    timer = settimer(timeout_seconds, retry, [])
-    
-    print "Sending message,", tries_left, "tries left"
-    sendmess(destip, destport, wrapped_message, srcip, srcport)
-    
-    def ack_received(remoteip, remoteport, ack_message, commhandle):
-      ack_number = int(ack_message)
-      print "Received ACK:", ack_number
-      if ack_number == mycontext["seq_number"]:
-        canceltimer(timer)
-    
-    print "Waiting to receive ACK for", mycontext["seq_number"], "..."
-    recvmess(srcip, srcport, ack_received)
+    raise Exception("Client fails sending after", mycontext['retries'], "retries")
 
 mycontext["delim"] = ","
-# Global variable containing current sequence number.
-# Will not be reliable if we call reliable_sendmess several times concurrently.
-mycontext["seq_number"] = 0
 mycontext["maxdgramsize"] = 512
-mycontext["retries"] = 4
-mycontext["timeoutinms"] = 10
+mycontext["retries"] = 3 
+mycontext["timeoutinms"] = 1000
 def reliable_config(maxdgramsize, retries, timeoutinms):
   mycontext["maxdgramsize"] = maxdgramsize
   mycontext["retries"] = retries
