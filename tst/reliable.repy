@@ -6,6 +6,14 @@ def expect(value, failure_message):
 
 def run_tests():
   test_immediate_receive()
+  test_delayed_receive()
+
+def reset_state():
+  # This is important because reliable_recvmess will alternate between 
+  # sequence numbers but we want to start at 0 for each test because that's 
+  # what the reliable_sendmess does.
+  mycontext['seqnumber'] = 0
+  reliable_config(512, 3, 1000)
 
 def receive(callback):
   def wrapped_callback(sender_ip, sender_port, message, commhandle):
@@ -16,15 +24,26 @@ def send(message):
   return reliable_sendmess('127.0.0.1', 12346, message, '127.0.0.1', 12345)
 
 def test_immediate_receive():
+  reset_state()
   mycontext['immediate_receive'] = False
   def onreceive():
     mycontext['immediate_receive'] = True
   
-  reliable_config(512, 3, 1000)
   receive(onreceive)
-  send("test")
+  send('test')
   
   expect(mycontext['immediate_receive'], "Message is immediately received")
+
+def test_delayed_receive():
+  reset_state()
+  mycontext['delayed_receive'] = False
+  def onreceive():
+    mycontext['delayed_receive'] = True
+  
+  settimer(1.5, receive, [onreceive])
+  send('test')
+  
+  expect(mycontext['delayed_receive'], "Message is eventually received")
 
 if callfunc == 'initialize':
   run_tests()

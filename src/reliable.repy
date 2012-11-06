@@ -11,6 +11,8 @@ def reliable_recvmess(receiver_ip, receiver_port, function):
       stopcomm(commhandle)
       sendmess(sender_ip, sender_port, str(actual_seqnumber), receiver_ip, receiver_port)
       function(sender_ip, sender_port, message, commhandle)
+    else:
+      print "Server receives incorrect sequence number", actual_seqnumber
   return recvmess(receiver_ip, receiver_port, onreceive)
 
 def chunks(message, chunk_length):
@@ -27,6 +29,7 @@ def reliable_sendmess(receiver_ip, receiver_port, message, sender_ip=None, sende
   header_length = 1 + len(mycontext["delim"])
   seqnumber = 0
   retries = mycontext["retries"]
+  
   for payload in payloads:
     bytes = reliable_try_send_packet(receiver_ip, receiver_port, payload, seqnumber, retries, sender_ip, sender_port)
     total_bytes = total_bytes + bytes - header_length
