@@ -21,12 +21,17 @@ def reliable_sendmess(receiver_ip, receiver_port, message, sender_ip=None, sende
   
   print "Client starts sending from", sender_port, "to", receiver_port
   
+  total_bytes = 0
+  header_length = 1 + len(mycontext["delim"])
   seqnumber = 0
   retries = mycontext["retries"]
   for payload in payloads:
-    reliable_try_send_packet(receiver_ip, receiver_port, payload, seqnumber, retries, sender_ip, sender_port)
+    bytes = reliable_try_send_packet(receiver_ip, receiver_port, payload, seqnumber, retries, sender_ip, sender_port)
+    total_bytes = total_bytes + bytes - header_length
     seqnumber = 1 - seqnumber
   print "Client is done sending"
+  
+  return total_bytes
 
 def reliable_try_send_packet(receiver_ip, receiver_port, payload, seqnumber, retries, sender_ip=None, sender_port=None):
   wrapped_message = str(seqnumber) + ',' + payload
@@ -75,7 +80,7 @@ def reliable_try_send_packet(receiver_ip, receiver_port, payload, seqnumber, ret
   stopcomm(commhandle)
 	
   if mycontext['sent']:
-    return bytes
+    return mycontext['bytes']
   else:
     raise Exception("Client fails sending after", mycontext['retries'], "retries")
 
