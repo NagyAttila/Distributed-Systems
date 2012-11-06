@@ -42,6 +42,8 @@ def receiveMsg(remoteip, remoteport, message, commhandle):
   payload = get_payload(message)
   print 'Following message arrrived:',payload
   log(payload)
+  resetTimeout()
+  reliable_recvmess("127.0.0.1", mycontext['portnum'], receiveMsg)
 
 def log(data):
   try:
@@ -68,10 +70,8 @@ if callfunc == 'initialize':
   print "For debug only"
   for key, value in mycontext.items():
     print key,value
-  print "\n"
+  print getmyip(),"\n"
 
   startLogging()
   setTimeout()
-  #while True:
-  reliable_recvmess(getmyip(), mycontext['portnum'], receiveMsg)
-  resetTimeout()
+  reliable_recvmess("127.0.0.1", mycontext['portnum'], receiveMsg)
