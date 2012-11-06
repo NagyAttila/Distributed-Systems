@@ -8,6 +8,7 @@ def run_tests():
   test_immediate_receive()
   test_delayed_receive()
   test_duplicate_receive()
+  test_multiple_packets()
 
 def reset_state():
   # This is important because reliable_recvmess will alternate between 
@@ -71,6 +72,23 @@ def test_duplicate_receive():
   stopcomm(commhandle)
   
   expect(mycontext['duplicate_receive'], "ACK is not sent for duplicate packet")
+
+def test_multiple_packets():
+  reset_state()
+  reliable_config(4, 3, 1000)
+  mycontext['multiple_packets'] = 0
+  
+  def onreceive_first():
+    mycontext['multiple_packets'] += 1
+    receive(onreceive_second) # Receive the second packet.
+    
+  def onreceive_second():
+    mycontext['multiple_packets'] += 1
+  
+  receive(onreceive_first) # Receive the first packet.
+  send('testte') # Should result in two packets.
+  
+  expect(mycontext['multiple_packets'] == 2, "Multiple packets are received")
 
 if callfunc == 'initialize':
   run_tests()

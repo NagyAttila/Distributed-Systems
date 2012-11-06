@@ -48,7 +48,7 @@ def reliable_try_send_packet(receiver_ip, receiver_port, payload, seqnumber, ret
   timeout_seconds = float(mycontext["timeoutinms"]) / 1000
   
   def send():
-    print "Client sends packet,", mycontext['retries_left'], "retries left"
+    print "Client sends packet:", wrapped_message, "/", mycontext['retries_left'], "retries left"
     mycontext['timer'] = settimer(timeout_seconds, ack_timeout, [])
     mycontext['bytes'] = sendmess(receiver_ip, receiver_port, wrapped_message, sender_ip, sender_port)
   
