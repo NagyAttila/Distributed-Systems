@@ -1,10 +1,12 @@
+mycontext['seqnumber'] = 0
 def reliable_recvmess(receiver_ip, receiver_port, function):
   print "Server starts receiving to", receiver_port
-  expected_seqnumber = 0
+  expected_seqnumber = mycontext['seqnumber']
   def onreceive(sender_ip, sender_port, message, commhandle):
     print "Server receives:", message
     actual_seqnumber = int(message[0])
     if actual_seqnumber == expected_seqnumber:
+      mycontext['seqnumber'] = 1 - mycontext['seqnumber']
       print "Server sends ACK", actual_seqnumber, "to", sender_port
       stopcomm(commhandle)
       sendmess(sender_ip, sender_port, str(actual_seqnumber), receiver_ip, receiver_port)
