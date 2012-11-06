@@ -43,11 +43,12 @@ def receiveMsg(remoteip, remoteport, message, commhandle):
   print 'Following message arrrived:',payload
   log(payload)
   resetTimeout()
-  reliable_recvmess("127.0.0.1", mycontext['portnum'], receiveMsg)
+  reliable_recvmess(getmyip(), mycontext['portnum'], receiveMsg)
 
 def log(data):
   try:
     mycontext['filetosent'].write(data)
+    mycontext['filetosent'].flush()
   except IOError as e:
     print mycontext['outfile'],'cannot be written!'
     stopLogging()
@@ -74,4 +75,4 @@ if callfunc == 'initialize':
 
   startLogging()
   setTimeout()
-  reliable_recvmess("127.0.0.1", mycontext['portnum'], receiveMsg)
+  reliable_recvmess(getmyip(), mycontext['portnum'], receiveMsg)

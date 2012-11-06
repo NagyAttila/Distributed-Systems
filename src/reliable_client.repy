@@ -6,7 +6,7 @@ def usage():
 def checkArgs():
   n = len(callargs)
   if not n == 3 and \
-    not n == 5 and\
+    not n == 5 and \
     not n == 6 and \
     not n == 8:
     usage()
@@ -59,14 +59,16 @@ if callfunc == 'initialize':
   data = f.read()
 
   try:
-    transmitted_bytes =  reliable_sendmess( mycontext['serverhost'],\
-                       mycontext['serverportnum'], \
-                       data, \
-                       mycontext['srchost'], \
-                       mycontext['srcportnum'])
-  except SelfdefinedExcpForTransitionFailure as e:
-    print 'Error: Some part of the file was not transmitted! Increase the nretries or the timeoutms.'
+    #transmitted_bytes = reliable_sendmess( mycontext['serverhost'],\
+    reliable_sendmess( mycontext['serverhost'],\
+                        mycontext['serverportnum'], \
+                        data, \
+                        mycontext['srchost'], \
+                        mycontext['srcportnum'])
+  except TimeoutErrorException as e:
+    print 'Timeout happend ',mycontext['nretries'],' times! Increase the nretries or the timeoutms.'
     exitall()
 
-  print 'Transmission done:',mycontext['inputfile'],transmitted_bytes,'/',len(data)
+  #print 'Transmission done:',mycontext['inputfile'],transmitted_bytes,'/',len(data)
   f.close()
+
