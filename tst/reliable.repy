@@ -7,6 +7,7 @@ def expect(value, failure_message):
 def run_tests():
   test_immediate_receive()
   test_delayed_receive()
+  test_duplicate_receive()
 
 def reset_state():
   # This is important because reliable_recvmess will alternate between 
@@ -44,6 +45,32 @@ def test_delayed_receive():
   send('test')
   
   expect(mycontext['delayed_receive'], "Message is eventually received")
+
+def test_duplicate_receive():
+  reset_state()
+  mycontext['duplicate_receive'] = False
+  def onreceive(lock):
+    mycontext['duplicate_receive'] = False
+    lock.release()
+  def ontimeout(lock):
+    mycontext['duplicate_receive'] = True
+    lock.release()
+  
+  commhandle = receive(onreceive)
+  
+  # Fake a message that would have been sent if the previous ACK from the 
+  # receiver was lost. Since the receiver begins waiting for 0, it should
+  # simply ignore this message.
+  sendmess('127.0.0.1', 12346, '1,test', '127.0.0.1', 12345)
+  
+  # If we have not received an ACK after 2 seconds, we should be alright.
+  lock = getlock()
+  settimer(2, ontimeout, [lock])
+  lock.acquire() # This one will succeed immediately.
+  lock.acquire() # This one will only succeed after one of the callbacks.
+  stopcomm(commhandle)
+  
+  expect(mycontext['duplicate_receive'], "ACK is not sent for duplicate packet")
 
 if callfunc == 'initialize':
   run_tests()
