@@ -1,0 +1,30 @@
+include ../src/reliable.repy
+
+def expect(value, failure_message):
+  if not value:
+    print "Failed expectation:", failure_message
+
+def run_tests():
+  test_immediate_receive()
+
+def receive(callback):
+  def wrapped_callback(sender_ip, sender_port, message, commhandle):
+    callback()
+  return reliable_recvmess('127.0.0.1', 12346, wrapped_callback)
+
+def send(message):
+  return reliable_sendmess('127.0.0.1', 12346, message, '127.0.0.1', 12345)
+
+def test_immediate_receive():
+  mycontext['immediate_receive'] = False
+  def onreceive():
+    mycontext['immediate_receive'] = True
+  
+  reliable_config(512, 3, 1000)
+  receive(onreceive)
+  send("test")
+  
+  expect(mycontext['immediate_receive'], "Message is immediately received")
+
+if callfunc == 'initialize':
+  run_tests()
