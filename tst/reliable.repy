@@ -9,6 +9,7 @@ def run_tests():
   test_delayed_receive()
   test_duplicate_receive()
   test_multiple_packets()
+  test_delay_without_retries()
 
 def reset_state():
   # This is important because reliable_recvmess will alternate between 
@@ -89,6 +90,32 @@ def test_multiple_packets():
   send('testte') # Should result in two packets.
   
   expect(mycontext['multiple_packets'] == 2, "Multiple packets are received")
+
+def test_delay_without_retries():
+  reset_state()
+  reliable_config(512, 0, 2000)
+  mycontext['delay_without_retries'] = False
+  
+  def onhalftimeout():
+    mycontext['delay_without_retries'] = False
+    lock.release()
+  
+  lock = getlock()
+  lock.acquire()
+  
+  settimer(1, onhalftimeout, [])
+  try:
+    send('test')
+  except Exception:
+    pass # We are expecting a timeout so this is okay.
+  mycontext['delay_without_retries'] = True
+  
+  # Either we acquire this lock immediately, in which case everything is fine,
+  # or we wait until onhalftimeout runs, in which case we didn't have a proper
+  # timeout after all.
+  lock.acquire()
+  
+  expect(mycontext['delay_without_retries'], "Delay occurs even without retries")
 
 if callfunc == 'initialize':
   run_tests()
