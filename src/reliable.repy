@@ -1,10 +1,12 @@
+mycontext['seqnumber'] = 0
 def reliable_recvmess(receiver_ip, receiver_port, function):
   print "Server starts receiving to", receiver_port
-  expected_seqnumber = 0
+  expected_seqnumber = mycontext['seqnumber']
   def onreceive(sender_ip, sender_port, message, commhandle):
     print "Server receives:", message
     actual_seqnumber = int(message[0])
     if actual_seqnumber == expected_seqnumber:
+      mycontext['seqnumber'] = 1 - mycontext['seqnumber']
       print "Server sends ACK", actual_seqnumber, "to", sender_port
       stopcomm(commhandle)
       sendmess(sender_ip, sender_port, str(actual_seqnumber), receiver_ip, receiver_port)
@@ -21,12 +23,17 @@ def reliable_sendmess(receiver_ip, receiver_port, message, sender_ip=None, sende
   
   print "Client starts sending from", sender_port, "to", receiver_port
   
+  total_bytes = 0
+  header_length = 1 + len(mycontext["delim"])
   seqnumber = 0
   retries = mycontext["retries"]
   for payload in payloads:
-    reliable_try_send_packet(receiver_ip, receiver_port, payload, seqnumber, retries, sender_ip, sender_port)
+    bytes = reliable_try_send_packet(receiver_ip, receiver_port, payload, seqnumber, retries, sender_ip, sender_port)
+    total_bytes = total_bytes + bytes - header_length
     seqnumber = 1 - seqnumber
   print "Client is done sending"
+  
+  return total_bytes
 
 def reliable_try_send_packet(receiver_ip, receiver_port, payload, seqnumber, retries, sender_ip=None, sender_port=None):
   wrapped_message = str(seqnumber) + ',' + payload
@@ -75,7 +82,7 @@ def reliable_try_send_packet(receiver_ip, receiver_port, payload, seqnumber, ret
   stopcomm(commhandle)
 	
   if mycontext['sent']:
-    return bytes
+    return mycontext['bytes']
   else:
     raise Exception("Client fails sending after", mycontext['retries'], "retries")
 
