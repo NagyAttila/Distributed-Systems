@@ -58,17 +58,18 @@ if callfunc == 'initialize':
 
   data = f.read()
 
+  transmitted_bytes = None
   try:
-    #transmitted_bytes = reliable_sendmess( mycontext['serverhost'],\
-    reliable_sendmess( mycontext['serverhost'],\
+    #reliable_sendmess( mycontext['serverhost'],\
+    transmitted_bytes = reliable_sendmess( mycontext['serverhost'],\
                         mycontext['serverportnum'], \
                         data, \
                         mycontext['srchost'], \
                         mycontext['srcportnum'])
-  except TimeoutErrorException as e:
-    print 'Timeout happend ',mycontext['nretries'],' times! Increase the nretries or the timeoutms.'
-    exitall()
+  except Exception as e:
+    print "ERROR:",e
 
-  #print 'Transmission done:',mycontext['inputfile'],transmitted_bytes,'/',len(data)
+  print 'Client is terminating.'
+  print 'Transmitted bytes:',mycontext['inputfile'],transmitted_bytes,'/',len(data)
   f.close()
 

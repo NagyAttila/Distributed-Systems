@@ -87,7 +87,7 @@ def reliable_try_send_packet(receiver_ip, receiver_port, payload, seqnumber, ret
   if mycontext['sent']:
     return mycontext['bytes']
   else:
-    raise Exception("Client fails sending after", mycontext['retries'], "retries")
+    raise Exception("Client fails sending after " + str(mycontext['retries']) + " retries")
 
 mycontext["delim"] = ","
 mycontext["maxdgramsize"] = 512

@@ -38,12 +38,17 @@ def timeoutExpired():
   stopLogging()
   exitall()
 
-def receiveMsg(remoteip, remoteport, message, commhandle):
-  payload = get_payload(message)
-  print 'Following message arrrived:',payload
-  log(payload)
-  resetTimeout()
-  reliable_recvmess(getmyip(), mycontext['portnum'], receiveMsg)
+def startReceiving():
+  myip = "127.0.0.1"
+  def receiveMsg(remoteip, remoteport, message, commhandle):
+    payload = get_payload(message)
+    print 'Following message arrrived:',payload
+    log(payload)
+    resetTimeout()
+    reliable_recvmess(myip, mycontext['portnum'], receiveMsg)
+
+  setTimeout()
+  reliable_recvmess(myip, mycontext['portnum'], receiveMsg)
 
 def log(data):
   try:
@@ -74,5 +79,4 @@ if callfunc == 'initialize':
   print getmyip(),"\n"
 
   startLogging()
-  setTimeout()
-  reliable_recvmess(getmyip(), mycontext['portnum'], receiveMsg)
+  startReceiving()
