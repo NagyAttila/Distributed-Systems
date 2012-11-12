@@ -1,7 +1,6 @@
 include reliable.repy 
 
 def usage():
-  print "inputfile serverhost serverportnum [srchost srcportnum] [maxdgramsize nretries timeoutms]"
 
 def checkArgs():
   n = len(callargs)
@@ -44,16 +43,10 @@ if callfunc == 'initialize':
                    mycontext['nretries'],\
                    mycontext['timeoutms'])
 
-  print "For debug only"
-  for key, value in mycontext.items():
-    print key,value
-  print "\n"
-
   f = None 
   try:
     f = open(mycontext['inputfile'], 'r')
   except IOError as e:
-    print mycontext['inputfile'],'does not exist!'
     exitall()
 
   data = f.read()
@@ -68,6 +61,5 @@ if callfunc == 'initialize':
   except TimeoutError as e:
     print "ERROR:",e
 
-  print 'Client is terminating.'
   f.close()
 

@@ -6,19 +6,15 @@ class TimeoutError(Exception):
 
 mycontext['seqnumber'] = 0
 def reliable_recvmess(receiver_ip, receiver_port, function):
-  print "Server starts receiving to", receiver_port
   expected_seqnumber = mycontext['seqnumber']
   def onreceive(sender_ip, sender_port, message, commhandle):
-    print "Server receives:", message
     actual_seqnumber = int(message[0])
     if actual_seqnumber == expected_seqnumber:
       mycontext['seqnumber'] = 1 - mycontext['seqnumber']
-      print "Server sends ACK", actual_seqnumber, "to", sender_port
       stopcomm(commhandle)
       sendmess(sender_ip, sender_port, str(actual_seqnumber), receiver_ip, receiver_port)
       function(sender_ip, sender_port, message, commhandle)
     else:
-      print "Server receives incorrect sequence number", actual_seqnumber
   return recvmess(receiver_ip, receiver_port, onreceive)
 
 def chunks(message, chunk_length):
@@ -29,7 +25,6 @@ def reliable_sendmess(receiver_ip, receiver_port, message, sender_ip=None, sende
   dgramsize = mycontext["maxdgramsize"]
   payloads = chunks(message, dgramsize)
   
-  print "Client starts sending from", sender_port, "to", receiver_port
   
   total_bytes = 0
   header_length = 1 + len(mycontext["delim"])
@@ -40,7 +35,6 @@ def reliable_sendmess(receiver_ip, receiver_port, message, sender_ip=None, sende
     bytes = reliable_try_send_packet(receiver_ip, receiver_port, payload, seqnumber, retries, sender_ip, sender_port)
     total_bytes = total_bytes + bytes - header_length
     seqnumber = 1 - seqnumber
-  print "Client is done sending"
   
   return total_bytes
 
@@ -54,12 +48,10 @@ def reliable_try_send_packet(receiver_ip, receiver_port, payload, seqnumber, ret
   timeout_seconds = float(mycontext["timeoutinms"]) / 1000
   
   def send():
-    print "Client sends packet:", wrapped_message, "/", mycontext['retries_left'], "retries left"
     mycontext['timer'] = settimer(timeout_seconds, ack_timeout, [])
     mycontext['bytes'] = sendmess(receiver_ip, receiver_port, wrapped_message, sender_ip, sender_port)
   
   def ack_timeout():
-    print "Client did not receive ACK"
     if mycontext['retries_left'] > 0:
       mycontext['retries_left'] = mycontext['retries_left'] - 1
       send()
@@ -70,7 +62,6 @@ def reliable_try_send_packet(receiver_ip, receiver_port, payload, seqnumber, ret
   def ack_received(remoteip, remoteport, ack_message, commhandle):
     # We have received a packet from the client, but the ACK number is not 
     # relevant, because we're only waiting for a single ACK at any given time.
-    print "Client receives ACK"
     mycontext['sent'] = True # Ensure that we return correctly at the end of this function.
     
     canceltimer(mycontext['timer']) # Stop retrying.
@@ -81,7 +72,6 @@ def reliable_try_send_packet(receiver_ip, receiver_port, payload, seqnumber, ret
   
   send()
   
-  print "Client waits to receive ACK to", sender_port
   commhandle = recvmess(sender_ip, sender_port, ack_received)
   
   lock.acquire()

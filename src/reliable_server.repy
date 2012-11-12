@@ -33,8 +33,6 @@ def resetTimeout():
   setTimeout()
 
 def timeoutExpired():
-  print mycontext['timeout'],"second(s) has pasted since last received message."
-  print "Hej då!"
   stopLogging()
   exitall()
 
@@ -42,7 +40,6 @@ def startReceiving():
   myip = "127.0.0.1"
   def receiveMsg(remoteip, remoteport, message, commhandle):
     payload = get_payload(message)
-    print 'Following message arrrived:',payload
     log(payload)
     resetTimeout()
     reliable_recvmess(myip, mycontext['portnum'], receiveMsg)
@@ -55,7 +52,6 @@ def log(data):
     mycontext['filetosent'].write(data)
     mycontext['filetosent'].flush()
   except IOError as e:
-    print mycontext['outfile'],'cannot be written!'
     stopLogging()
     exitall()
 
@@ -73,10 +69,6 @@ if callfunc == 'initialize':
   checkArgs()
   parseArgs()
 
-  print "For debug only"
-  for key, value in mycontext.items():
-    print key,value
-  print getmyip(),"\n"
 
   startLogging()
   startReceiving()
