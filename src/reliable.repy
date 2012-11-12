@@ -1,3 +1,9 @@
+class TimeoutError(Exception):
+  def __init__(self, tries):
+    self.tries = tries
+  def __str__(self):
+    return "Client fails sending after " + str(self.tries) + " retries"
+
 mycontext['seqnumber'] = 0
 def reliable_recvmess(receiver_ip, receiver_port, function):
   print "Server starts receiving to", receiver_port
@@ -87,7 +93,8 @@ def reliable_try_send_packet(receiver_ip, receiver_port, payload, seqnumber, ret
   if mycontext['sent']:
     return mycontext['bytes']
   else:
-    raise Exception("Client fails sending after " + str(mycontext['retries']) + " retries")
+    raise TimeoutError(mycontext['retries'])
+    #raise Exception("Client fails sending after " + str(mycontext['retries']) + " retries")
 
 mycontext["delim"] = ","
 mycontext["maxdgramsize"] = 512
