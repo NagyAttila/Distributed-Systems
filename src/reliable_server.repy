@@ -38,11 +38,14 @@ def timeoutExpired():
 
 def startReceiving():
   myip = "127.0.0.1"
+  #myip = getmyip()
   def receiveMsg(remoteip, remoteport, message, commhandle):
     payload = get_payload(message)
     log(payload)
     resetTimeout()
     reliable_recvmess(myip, mycontext['portnum'], receiveMsg)
+
+  print 'receive to',myip,mycontext['portnum']
 
   setTimeout()
   reliable_recvmess(myip, mycontext['portnum'], receiveMsg)

@@ -4,6 +4,7 @@ class TimeoutError(Exception):
   def __str__(self):
     return "Client fails sending after " + str(self.tries) + " retries"
 
+mycontext['retransmissions'] = 0
 mycontext['seqnumber'] = 0
 def reliable_recvmess(receiver_ip, receiver_port, function):
   expected_seqnumber = mycontext['seqnumber']
@@ -14,7 +15,6 @@ def reliable_recvmess(receiver_ip, receiver_port, function):
       stopcomm(commhandle)
       sendmess(sender_ip, sender_port, str(actual_seqnumber), receiver_ip, receiver_port)
       function(sender_ip, sender_port, message, commhandle)
-    else:
   return recvmess(receiver_ip, receiver_port, onreceive)
 
 def chunks(message, chunk_length):
@@ -53,6 +53,7 @@ def reliable_try_send_packet(receiver_ip, receiver_port, payload, seqnumber, ret
   
   def ack_timeout():
     if mycontext['retries_left'] > 0:
+      mycontext['retransmissions'] += 1
       mycontext['retries_left'] = mycontext['retries_left'] - 1
       send()
     else:

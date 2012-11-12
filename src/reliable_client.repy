@@ -1,6 +1,5 @@
 include reliable.repy 
 
-def usage():
 
 def checkArgs():
   n = len(callargs)
@@ -8,7 +7,6 @@ def checkArgs():
     not n == 5 and \
     not n == 6 and \
     not n == 8:
-    usage()
     exitall()
 
 def parseArgs():
@@ -44,14 +42,18 @@ if callfunc == 'initialize':
                    mycontext['timeoutms'])
 
   f = None 
+  f2 = None 
   try:
     f = open(mycontext['inputfile'], 'r')
+    f2 = open('log.txt', 'w')
   except IOError as e:
     exitall()
 
   data = f.read()
 
   transmitted_bytes = None
+
+  print 'send to',mycontext['serverhost'],mycontext['serverportnum']
   try:
     reliable_sendmess( mycontext['serverhost'],\
                         mycontext['serverportnum'], \
@@ -60,6 +62,13 @@ if callfunc == 'initialize':
                         mycontext['srcportnum'])
   except TimeoutError as e:
     print "ERROR:",e
+
+  f2.write( "Time:" )
+  f2.write( str(getruntime()) )
+  f2.write( "Retransmission:" )
+  f2.write( str(mycontext['retransmissions']) )
+  f2.flush()
+  f2.close()
 
   f.close()
 
