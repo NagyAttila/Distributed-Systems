@@ -7,10 +7,11 @@ if callfunc == 'initialize':
   packet_size = int(callargs[2])
   retries = int(callargs[3])
   timeout = int(callargs[4])
+  byte_count = int(callargs[5])
   
   reliable_config(packet_size, retries, timeout)
   
-  message = '0123456789' * 5000
+  message = 'a' * byte_count
   length = len(message)
   packet_count = float(length) / packet_size
   
