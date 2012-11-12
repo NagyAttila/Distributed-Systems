@@ -2,7 +2,7 @@ include ../src/reliable.repy
 
 def expect(value, failure_message):
   if not value:
-    print "Failed expectation:", failure_message
+    print "*** Failed expectation:", failure_message, "***"
 
 def run_tests():
   test_immediate_receive()
@@ -10,6 +10,7 @@ def run_tests():
   test_duplicate_receive()
   test_multiple_packets()
   test_delay_without_retries()
+  test_unreliable()
 
 def reset_state():
   # This is important because reliable_recvmess will alternate between 
@@ -116,6 +117,19 @@ def test_delay_without_retries():
   lock.acquire()
   
   expect(mycontext['delay_without_retries'], "Delay occurs even without retries")
+
+def test_unreliable():
+  reset_state()
+  reliable_config(512, 0, 0)
+  mycontext['unreliable'] = True
+  
+  def later():
+    mycontext['unreliable'] = False
+  
+  settimer(1, later, [])
+  send('test')
+  
+  expect(mycontext['unreliable'], "0 retries and 0 timeout returns immediately")
 
 if callfunc == 'initialize':
   run_tests()
