@@ -1,0 +1,22 @@
+include ../src/reliable.repy
+
+if callfunc == 'initialize':
+  receiver_ip = callargs[0]
+  common_port = int(callargs[1])
+  sender_ip = getmyip()
+  packet_size = int(callargs[2])
+  retries = int(callargs[3])
+  timeout = int(callargs[4])
+  
+  reliable_config(packet_size, retries, timeout)
+  
+  message = '0123456789' * 5000
+  length = len(message)
+  packet_count = float(length) / packet_size
+  
+  print "Sending to IP", receiver_ip, "port", common_port
+  reliable_sendmess(receiver_ip, common_port, message, sender_ip, common_port)
+  
+  print "Packets sent:   ", packet_count
+  print "Retransmissions:", mycontext['retransmissions']
+  print "Time:           ", getruntime()

@@ -1,0 +1,27 @@
+include ../src/reliable.repy
+
+def onreceive(sender_ip, sender_port, message, commhandle):
+  mycontext['packets_received'] += 1
+  stopcomm(commhandle)
+  
+  if mycontext['server_timer'] is not None:
+    canceltimer(mycontext['server_timer'])
+  
+  mycontext['server_timer'] = settimer(5, print_result, [])
+  
+  mycontext['latest_commandle'] = reliable_recvmess(mycontext['receiver_ip'], mycontext['common_port'], onreceive)
+  #print "Received from IP", sender_ip, "port", sender_port, "-", message
+
+def print_result():
+  stopcomm(mycontext['latest_commandle'])
+  print "Packets received:", mycontext['packets_received']
+
+if callfunc == 'initialize':
+  mycontext['packets_received'] = 0
+  mycontext['common_port'] = int(callargs[0])
+  mycontext['receiver_ip'] = getmyip()
+  mycontext['server_timeout'] = 5
+  mycontext['server_timer'] = None
+  
+  print "Starting to receive"
+  reliable_recvmess(mycontext['receiver_ip'], mycontext['common_port'], onreceive)
