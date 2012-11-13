@@ -10,11 +10,11 @@ cd compile
 
 python ${REPY_PATH}/repypp.py reliable_server.repy server.repy
 python ${REPY_PATH}/repypp.py reliable_client.repy client.repy
+cp client.repy server.repy ${REPY_PATH}/code
 
 cd ../tst
 python ${REPY_PATH}/repypp.py reliable.repy test_reliable.repy
 
-#cp client.repy server.repy ..
 
 echo To run client
 echo python ${REPY_PATH}/repy.py compile/restrictions.test compile/client.repy 
