@@ -2,6 +2,8 @@
 REPY_PATH=~/tools/demokit/
 CODE=$REPY_PATH/code
 
+cd $REPY_PATH
+
 function run_test
 {
   tout=$1
@@ -19,6 +21,7 @@ function run_test
   # run
   echo on %1 run $CODE/server.repy $out_file $client_port
   echo on %2 upload $CODE/$in_file $in_file
+  sleep 3
   echo on %2 run $CODE/client.repy $in_file $server_ip $server_port $client_ip $client_port $dgram $rtries $tout;
   echo on %1 show log;
   echo on %2 show log;
@@ -36,17 +39,31 @@ function run_test
   fi
 }
 
+function get_ip
+{
+  (
+  echo loadkeys $user; 
+  echo as $user;
+  echo browse;
+  echo on $1 list
+
+  echo exit;
+  )| python seash.py | egrep "^[[:space:]]*$1" |  awk '{print $2}' | cut -d: -f1
+}
 
 user='lorcs1'
 in_file='test_in'
 out_file='test_out'
 
-server_ip='203.159.127.2' 
+server_ip=$(get_ip %1) # %1
 server_port='63177'
-client_ip='203.159.127.3'
+client_ip=$(get_ip %2) # $2
 client_port='63177'
 
-cd $REPY_PATH
+if [ -z "$server_ip" ] || [ -z "$client_ip" ]; then
+  echo "Failed to get either server or client ip"
+  exit  1
+fi
 
 # to see only the results extend the commands with 
 # '| egrep "Success with|Failure with"'
