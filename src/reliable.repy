@@ -90,7 +90,7 @@ def reliable_try_send_packet(receiver_ip, receiver_port, payload, seqnumber, ret
   
   stopcomm(commhandle)
 	
-  if mycontext['sent']:
+  if mycontext['sent'] or mycontext['retries'] == 0:
     return mycontext['bytes']
   else:
     raise TimeoutError(mycontext['retries'])
