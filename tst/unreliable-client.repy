@@ -1,0 +1,11 @@
+if callfunc == 'initialize':
+  print "Starting client"
+  
+  receiver_ip = callargs[0]
+  port = int(callargs[1])
+  byte_count = int(callargs[2])
+  
+  for x in range(0, byte_count / 10):
+    sendmess(receiver_ip, port, '0123456789', getmyip(), port)
+  
+  print "Stopping client"

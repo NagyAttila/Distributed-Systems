@@ -1,0 +1,29 @@
+def stop():
+  stopcomm(mycontext['commhandle'])
+  print "Received:", str(mycontext['received'])
+  print "Time:    ", str(mycontext['last_time'] - mycontext['first_time'])
+
+def onreceive(sender_ip, sender_port, message, commhandle):
+  mycontext['received'] += 1
+  
+  if mycontext['first_time'] == 0:
+    mycontext['first_time'] = getruntime()
+  
+  mycontext['last_time'] = getruntime()
+  
+  if mycontext['timer'] is not None:
+    canceltimer(mycontext['timer'])
+  
+  mycontext['timer'] = settimer(10, stop, [])
+
+if callfunc == 'initialize':
+  print "Starting server"
+  
+  port = int(callargs[0])
+  
+  mycontext['received'] = 0
+  mycontext['timer'] = None
+  mycontext['first_time'] = 0
+  mycontext['last_time'] = 0
+  
+  mycontext['commhandle'] = recvmess(getmyip(), port, onreceive)
