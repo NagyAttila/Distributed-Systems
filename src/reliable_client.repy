@@ -13,36 +13,36 @@ def checkArgs():
     exitall()
 
 def parseArgs():
-  mycontext['srchost'] = getmyip()
-  mycontext['srcportnum'] = 12345
-  mycontext['maxdgramsize'] = 512
-  mycontext['nretries'] = 4
-  mycontext['timeoutms'] = 10
+  mycontext['p_srchost'] = getmyip()
+  mycontext['p_srcportnum'] = 12345
+  mycontext['p_maxdgramsize'] = 512
+  mycontext['p_nretries'] = 4
+  mycontext['p_timeoutms'] = 10
 
   n = len(callargs)
   if n >= 3:
-    mycontext['inputfile'] = callargs[0]
-    mycontext['serverhost'] = callargs[1]
-    mycontext['serverportnum'] = int(callargs[2])
+    mycontext['p_inputfile'] = callargs[0]
+    mycontext['p_serverhost'] = callargs[1]
+    mycontext['p_serverportnum'] = int(callargs[2])
   if n == 5 or n == 8:
-    mycontext['srchost'] = callargs[3]
-    mycontext['srcportnum'] = int(callargs[4])
+    mycontext['p_srchost'] = callargs[3]
+    mycontext['p_srcportnum'] = int(callargs[4])
   if n == 6:
-    mycontext['maxdgramsize'] = int(callargs[3])
-    mycontext['nretries']= int(callargs[4])
-    mycontext['timeoutms'] = int(callargs[5])
+    mycontext['p_maxdgramsize'] = int(callargs[3])
+    mycontext['p_nretries']= int(callargs[4])
+    mycontext['p_timeoutms'] = int(callargs[5])
   if n == 8:
-    mycontext['maxdgramsize'] = int(callargs[5])
-    mycontext['nretries']= int(callargs[6])
-    mycontext['timeoutms'] = int(callargs[7])
+    mycontext['p_maxdgramsize'] = int(callargs[5])
+    mycontext['p_nretries']= int(callargs[6])
+    mycontext['p_timeoutms'] = int(callargs[7])
 
 if callfunc == 'initialize':
   checkArgs()
   parseArgs()
 
-  reliable_config( mycontext['maxdgramsize'],\
-                   mycontext['nretries'],\
-                   mycontext['timeoutms'])
+  reliable_config( mycontext['p_maxdgramsize'],\
+                   mycontext['p_nretries'],\
+                   mycontext['p_timeoutms'])
 
   print "For debug only"
   for key, value in mycontext.items():
@@ -51,20 +51,20 @@ if callfunc == 'initialize':
 
   f = None 
   try:
-    f = open(mycontext['inputfile'], 'r')
-  except IOError as e:
-    print mycontext['inputfile'],'does not exist!'
+    f = open(mycontext['p_inputfile'], 'r')
+  except Exception as e:
+    print mycontext['p_inputfile'],'does not exist!'
     exitall()
 
   data = f.read()
 
   transmitted_bytes = None
   try:
-    reliable_sendmess( mycontext['serverhost'],\
-                        mycontext['serverportnum'], \
-                        data, \
-                        mycontext['srchost'], \
-                        mycontext['srcportnum'])
+    reliable_sendmess( mycontext['p_serverhost'],\
+                       mycontext['p_serverportnum'], \
+                       data, \
+                       mycontext['p_srchost'], \
+                       mycontext['p_srcportnum'])
   except TimeoutError as e:
     print "ERROR:",e
 

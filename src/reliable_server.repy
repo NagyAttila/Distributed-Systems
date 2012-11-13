@@ -1,29 +1,27 @@
 include reliable.repy 
 
 def usage():
-  print "repy outfile portnum [timeout]"
+  print "outfile portnum [timeout]"
   print "timeout is in seconds, default: 10sec"
-### what is repy??? ###
 
 def checkArgs():
   n = len(callargs)
-  if not n == 3 and \
-     not n == 4:
+  if not n == 2 and \
+     not n == 3:
     usage()
     exitall()
 
 def parseArgs():
-  mycontext['timeout'] = 10
+  mycontext['p_timeout'] = 10
   n = len(callargs)
-  if n >= 3:
-    mycontext['repy'] = callargs[0]
-    mycontext['outfile'] = callargs[1]
-    mycontext['portnum'] = int(callargs[2])
-  if n == 4:
-    mycontext['timeout'] = int(callargs[3])
+  if n >= 2:
+    mycontext['p_outfile'] = callargs[0]
+    mycontext['p_portnum'] = int(callargs[1])
+  if n == 3:
+    mycontext['p_timeout'] = int(callargs[2])
 
 def setTimeout():
-  mycontext['timeoutTimer'] = settimer(mycontext['timeout'], timeoutExpired, [])
+  mycontext['timeoutTimer'] = settimer(mycontext['p_timeout'], timeoutExpired, [])
 
 def cancelTimeout():
   canceltimer(mycontext['timeoutTimer'])
@@ -33,29 +31,35 @@ def resetTimeout():
   setTimeout()
 
 def timeoutExpired():
-  print mycontext['timeout'],"second(s) has pasted since last received message."
+  print mycontext['p_timeout'],"second(s) has pasted since last received message."
   print "Hej då!"
   stopLogging()
   exitall()
 
 def startReceiving():
-  myip = "127.0.0.1"
+  myip = None
+  if mycontext['p_portnum'] == 12345 or \
+      mycontext['p_portnum'] == 12346:
+    myip = "127.0.0.1"
+  else:
+    myip = getmyip()
+
   def receiveMsg(remoteip, remoteport, message, commhandle):
     payload = get_payload(message)
     print 'Following message arrrived:',payload
     log(payload)
     resetTimeout()
-    reliable_recvmess(myip, mycontext['portnum'], receiveMsg)
+    reliable_recvmess(myip, mycontext['p_portnum'], receiveMsg)
 
   setTimeout()
-  reliable_recvmess(myip, mycontext['portnum'], receiveMsg)
+  reliable_recvmess(myip, mycontext['p_portnum'], receiveMsg)
 
 def log(data):
   try:
     mycontext['filetosent'].write(data)
     mycontext['filetosent'].flush()
-  except IOError as e:
-    print mycontext['outfile'],'cannot be written!'
+  except:
+    print mycontext['p_outfile'],'cannot be written!'
     stopLogging()
     exitall()
 
@@ -64,9 +68,9 @@ def stopLogging():
 
 def startLogging():
   try:
-    mycontext['filetosent'] = open(mycontext['outfile'], 'w')
-  except IOError as e:
-    print mycontext['outfile'],'cannot be written!'
+    mycontext['filetosent'] = open(mycontext['p_outfile'], 'w')
+  except:
+    print mycontext['p_outfile'],'cannot be written!'
     exitall()
 
 if callfunc == 'initialize':

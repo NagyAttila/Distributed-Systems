@@ -1,2 +1,0 @@
-Client: python /home/anagy/tools/seattle/seattle_repy//repy.py compile/restrictions.test compile/client.repy README.md 127.0.0.1 12346 127.0.0.1 12345
-Server: python /home/anagy/tools/seattle/seattle_repy//repy.py compile/restrictions.test compile/server.repy repy out 12346 100
