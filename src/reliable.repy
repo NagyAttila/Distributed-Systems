@@ -104,6 +104,10 @@ def reliable_config(maxdgramsize, retries, timeoutinms):
   mycontext["maxdgramsize"] = maxdgramsize
   mycontext["retries"] = retries
   mycontext["timeoutinms"] = timeoutinms
+  
+  # Disable retransmissions when timeout is zero, as per specification.
+  if mycontext["timeoutinms"] == 0:
+    mycontext["retries"] = 0
 
 def get_payload(message):
   header_length = 1 + len(mycontext["delim"])
