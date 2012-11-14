@@ -98,12 +98,16 @@ def reliable_try_send_packet(receiver_ip, receiver_port, payload, seqnumber, ret
 
 mycontext["delim"] = ","
 mycontext["maxdgramsize"] = 512
-mycontext["retries"] = 3 
-mycontext["timeoutinms"] = 1000
+mycontext["retries"] = 4
+mycontext["timeoutinms"] = 10
 def reliable_config(maxdgramsize, retries, timeoutinms):
   mycontext["maxdgramsize"] = maxdgramsize
   mycontext["retries"] = retries
   mycontext["timeoutinms"] = timeoutinms
+  
+  # Disable retransmissions when timeout is zero, as per specification.
+  if mycontext["timeoutinms"] == 0:
+    mycontext["retries"] = 0
 
 def get_payload(message):
   header_length = 1 + len(mycontext["delim"])
