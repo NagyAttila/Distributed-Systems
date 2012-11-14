@@ -44,21 +44,15 @@ if callfunc == 'initialize':
                    mycontext['p_nretries'],\
                    mycontext['p_timeoutms'])
 
-  print "For debug only"
-  for key, value in mycontext.items():
-    print key,value
-  print "\n"
-
   f = None 
   try:
     f = open(mycontext['p_inputfile'], 'r')
-  except Exception as e:
+  except:
     print mycontext['p_inputfile'],'does not exist!'
     exitall()
 
   data = f.read()
 
-  transmitted_bytes = None
   try:
     reliable_sendmess( mycontext['p_serverhost'],\
                        mycontext['p_serverportnum'], \
@@ -68,6 +62,5 @@ if callfunc == 'initialize':
   except TimeoutError as e:
     print "ERROR:",e
 
-  print 'Client is terminating.'
   f.close()
 
